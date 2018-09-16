@@ -3,8 +3,11 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]]
   :main ^:skip-aot indra-clj.core
+  :source-paths ["src"]
+  :test-paths ["test"]
+  :resource-paths ["resources"]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
