@@ -68,7 +68,7 @@
   ([^Complex x ^Complex y] (.multiply x y))
   ([x y & more] (reduce * (* x y) more)))
 
-(defn reciprocol
+(defn reciprocal
   [^Complex z] (.reciprocal z))
 
 (defn div ; / looks dumb when fully qualified
