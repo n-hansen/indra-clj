@@ -1,5 +1,5 @@
-(ns indra-clj.complex-test
-  (:require [indra-clj.complex :as c]
+(ns indra.complex-test
+  (:require [indra.complex :as c]
             [clojure.test :refer [deftest is]]))
 
 ;; TODO property based testing

@@ -1,5 +1,5 @@
-(ns indra-clj.mobius
-  (:require [indra-clj.complex :as c]
+(ns indra.mobius
+  (:require [indra.complex :as c]
             [potemkin :refer [defprotocol+]])
   (:import [org.apache.commons.math3.complex Complex]))
 

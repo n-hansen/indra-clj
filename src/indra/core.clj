@@ -1,4 +1,4 @@
-(ns indra-clj.core
+(ns indra.core
   (:gen-class))
 
 (defn -main

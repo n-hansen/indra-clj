@@ -1,4 +1,4 @@
-(ns indra-clj.complex
+(ns indra.complex
   (:refer-clojure :rename {+ clj-add
                            - clj-sub
                            * clj-mul
@@ -34,10 +34,9 @@
   [^Complex z]
   (.getImaginary z))
 
-(defn abs
-  (^double
-   [^Complex z]
-   (.abs z)))
+(defn abs ^double
+  [^Complex z]
+  (.abs z))
 
 (defn argument
   [^Complex z]
@@ -72,7 +71,7 @@
 (defn reciprocal
   [^Complex z] (.reciprocal z))
 
-(defn div ; / looks dumb when fully qualified
+(defn div ; `/` looks dumb when fully qualified
   ([] one)
   ([^Complex x] (.reciprocal x))
   ([^Complex x ^Complex y] (.multiply x (.reciprocal y))) ; avoiding .divide to handle inf correctly
@@ -91,7 +90,8 @@
   ([x y ^double e]
    (<= (-> (- x y) abs) e)))
 
-; arithmetic operations with one real component
+; arithmetic operations by a scalar
+
 (defn +real
   [^Complex z ^double r]
   (.add z r))
@@ -118,3 +118,4 @@
    (format "%.2g%+.2gi" (real o) (imag o))
    w))
 
+(comment (rect 1 2))

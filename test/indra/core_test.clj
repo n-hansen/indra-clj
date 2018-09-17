@@ -1,6 +1,6 @@
-(ns indra-clj.core-test
+(ns indra.core-test
   (:require [clojure.test :refer :all]
-            [indra-clj.core :refer :all]))
+            [indra.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."

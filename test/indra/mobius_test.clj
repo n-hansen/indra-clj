@@ -1,6 +1,6 @@
-(ns indra-clj.mobius-test
-  (:require [indra-clj.complex :as c]
-            [indra-clj.mobius :as m]
+(ns indra.mobius-test
+  (:require [indra.complex :as c]
+            [indra.mobius :as m]
             [clojure.test :refer [deftest is testing]]))
 
 (deftest fixed-points-test

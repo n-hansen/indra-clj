@@ -1,3 +1,3 @@
-# Introduction to indra-clj
+# Introduction to indra
 
 TODO: write [great documentation](http://jacobian.org/writing/what-to-write/)
