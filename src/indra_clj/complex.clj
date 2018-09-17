@@ -12,11 +12,10 @@
   (set! *warn-on-reflection* true)
   (set! *unchecked-math* :warn-on-boxed))
 
-(def zero (Complex. 0))
-
-(def one (Complex. 1))
-
-(def i (Complex. 0 1))
+(def zero Complex/ZERO)
+(def one Complex/ONE)
+(def i Complex/I)
+(def inf Complex/INF)
 
 (defn rect
   [real imag]
@@ -43,6 +42,14 @@
   [^Complex z]
   (.getArgument z))
 
+(defn zero?
+  [^Complex z]
+  (= z zero))
+
+(defn inf?
+  [^Complex z]
+  (.isInfinite z))
+
 (defn +
   ([] zero)
   ([x] x)
@@ -61,8 +68,11 @@
   ([^Complex x ^Complex y] (.multiply x y))
   ([x y & more] (reduce * (* x y) more)))
 
-(defn /
+(defn reciprocol
+  [^Complex z] (.reciprocal z))
+
+(defn div ;; / looks dumb when fully qualified
   ([] one)
   ([^Complex x] (.reciprocal x))
-  ([^Complex x ^Complex y] (.divide x y))
-  ([x y & more] (reduce / (/ x y) more)))
+  ([^Complex x ^Complex y] (.multiply x (.reciprocal y))) ; avoiding .divide to handle inf correctly
+  ([x y & more] (reduce div (div x y) more)))
