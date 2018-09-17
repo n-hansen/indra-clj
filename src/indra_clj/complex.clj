@@ -35,8 +35,9 @@
   (.getImaginary z))
 
 (defn abs
-  [^Complex z]
-  (.abs z))
+  (^double
+   [^Complex z]
+   (.abs z)))
 
 (defn argument
   [^Complex z]
@@ -85,6 +86,11 @@
   [^Complex z]
   (if (inf? z) z (.sqrt z)))
 
+(defn =*
+  ([x y] (=* x y 1e-9))
+  ([x y ^double e]
+   (<= (-> (- x y) abs) e)))
+
 ; arithmetic operations with one real component
 (defn +real
   [^Complex z ^double r]
@@ -105,3 +111,10 @@
 (defn pow-real
   [^Complex z ^double r]
   (.pow z r))
+
+(defmethod print-method Complex
+  [o w]
+  (print-simple
+   (format "%.2g%+.2gi" (real o) (imag o))
+   w))
+
