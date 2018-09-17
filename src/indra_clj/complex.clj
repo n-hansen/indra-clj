@@ -71,7 +71,7 @@
 (defn reciprocol
   [^Complex z] (.reciprocal z))
 
-(defn div ;; / looks dumb when fully qualified
+(defn div ; / looks dumb when fully qualified
   ([] one)
   ([^Complex x] (.reciprocal x))
   ([^Complex x ^Complex y] (.multiply x (.reciprocal y))) ; avoiding .divide to handle inf correctly
