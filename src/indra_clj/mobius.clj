@@ -32,3 +32,9 @@
 
 (defprotocol+ Transformable
   (transform [thing transformation]))
+
+(extend-type Complex
+  Transformable
+  (transform [z {:keys [a b c d]}]
+    (c/div (c/+ (c/* a z) b)
+           (c/+ (c/* c z) d))))
