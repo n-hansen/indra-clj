@@ -77,6 +77,31 @@
   ([^Complex x ^Complex y] (.multiply x (.reciprocal y))) ; avoiding .divide to handle inf correctly
   ([x y & more] (reduce div (div x y) more)))
 
+(defn pow
+  [^Complex x ^Complex y]
+  (.pow x y))
+
 (defn sqrt
   [^Complex z]
   (if (inf? z) z (.sqrt z)))
+
+; arithmetic operations with one real component
+(defn +real
+  [^Complex z ^double r]
+  (.add z r))
+
+(defn -real
+  [^Complex z ^double r]
+  (.subtract z r))
+
+(defn *real
+  [^Complex z ^double r]
+  (.multiply z r))
+
+(defn div-real
+  [^Complex z ^double r]
+  (.divide z r))
+
+(defn pow-real
+  [^Complex z ^double r]
+  (.pow z r))
