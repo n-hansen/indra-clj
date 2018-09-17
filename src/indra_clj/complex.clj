@@ -76,3 +76,7 @@
   ([^Complex x] (.reciprocal x))
   ([^Complex x ^Complex y] (.multiply x (.reciprocal y))) ; avoiding .divide to handle inf correctly
   ([x y & more] (reduce div (div x y) more)))
+
+(defn sqrt
+  [^Complex z]
+  (if (inf? z) z (.sqrt z)))
