@@ -3,7 +3,8 @@
   ;; :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0"]
+  :dependencies [[net.cgrand/xforms "0.18.2"]
+                 [org.clojure/clojure "1.9.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
                  [potemkin "0.4.5"]]
   :main ^:skip-aot indra.core
@@ -11,4 +12,5 @@
   :test-paths ["test"]
   :resource-paths ["resources"]
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :dev {:dependencies [[criterium "0.4.4"]]}})
