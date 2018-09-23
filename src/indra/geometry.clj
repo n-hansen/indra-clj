@@ -16,12 +16,12 @@
                              (let [p* (m/transform p t)
                                    q* (m/transform q t)
                                    length (c/abs (c/- p* q*))]
-                               (if (< length *max-path-segment-length*)
+                               (if (< length ^double *max-path-segment-length*)
                                  [p* q*]
                                  ; if we will transform into a segment that is too long,
                                  ; instead subdivide the segment before transforming
                                  (let [subsegments (-> length
-                                                       (quot *max-path-segment-length*)
+                                                       (quot ^double *max-path-segment-length*)
                                                        (inc)
                                                        (* 2))
                                        d (c/div-real (c/- q p) (double subsegments))]
