@@ -122,6 +122,10 @@
   [^Complex z ^double r]
   (.pow z r))
 
+(defn normalize
+  [z]
+  (div-real z (abs z)))
+
 (defmethod print-method Complex
   [o w]
   (print-simple
