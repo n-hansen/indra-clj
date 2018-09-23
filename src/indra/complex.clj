@@ -89,6 +89,12 @@
   [^Complex z]
   (if (inf? z) z (.sqrt z)))
 
+(defn =
+  [x y]
+  ; .equals on a Complex uses the JDK's Double equality, which has some obnoxious edge cases
+  ; the static method on Complex uses floating-point equality, which is usually what we want
+  (Complex/equals x y))
+
 (defn =*
   ([x y] (=* x y 1e-9))
   ([x y ^double e]

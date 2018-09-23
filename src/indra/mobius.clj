@@ -43,6 +43,10 @@
   [{:keys [a b c d]}]
   (->Transformation d (c/- b) (c/- c) a))
 
+(defn =
+  [s t]
+  (every? #(c/= (% s) (% t)) [:a :b :c :d]))
+
 (defn =*
   ([s t] (=* s t 1e-9))
   ([s t e]
