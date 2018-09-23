@@ -54,8 +54,14 @@
 (extend-type Complex
   Transformable
   (transform [z {:keys [a b c d]}]
-    (c/div (c/+ (c/* a z) b)
-           (c/+ (c/* c z) d))))
+    (if (c/inf? z)
+      ; T(∞) = (a∞+b)/(c∞+d)
+      ;      = (a+b/∞)/(c+d/∞)
+      ;      = (a+0)/(c+0)
+      ;      = a/c
+      (c/div a c)
+      (c/div (c/+ (c/* a z) b)
+             (c/+ (c/* c z) d)))))
 
 (defn conjugate
   [s t]

@@ -3,6 +3,17 @@
             [indra.mobius :as m]
             [clojure.test :refer [deftest is testing]]))
 
+(deftest map-points-test
+  (testing "T(∞)"
+    (let [; some arbitary transform
+          a (c/rect 1 2)
+          b (c/rect 3 4)
+          c (c/rect 5 6)
+          d (c/rect 7 8)
+          t (m/make-transformation a b c d)]
+      (is (c/=* (c/div a c)
+                (m/transform c/inf t))))))
+
 (deftest fixed-points-test
   (testing "textbook example 1"
     (let [k (c/rect 1 0.4)
