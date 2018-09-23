@@ -6,7 +6,7 @@
   (:import [org.apache.commons.math3.complex Complex]
            [org.apache.commons.math3.util FastMath]))
 
-;; simple shim around the apache commons complex number implementation
+;; thin wrapper around the apache commons complex number implementation
 
 (comment
   (set! *warn-on-reflection* true)
@@ -26,11 +26,11 @@
   (Complex. (clj-mul mag (FastMath/cos ang))
             (clj-mul mag (FastMath/sin ang))))
 
-(defn real
+(defn real ^double
   [^Complex z]
   (.getReal z))
 
-(defn imag
+(defn imag ^double
   [^Complex z]
   (.getImaginary z))
 
