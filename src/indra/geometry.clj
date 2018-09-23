@@ -30,3 +30,16 @@
                                              (range 1 subsegments))
                                        (conj q*))))))))
           points)))
+
+(defrecord Circle [^Complex center ^double radius]
+  m/Transformable
+  (m/transform [this {:keys [c d] :as t}]
+    (let [z (c/- center
+                 (-> (c/div d c)
+                     (c/+ center)
+                     c/conjugate
+                     c/reciprocal
+                     (c/*real (* radius radius))))
+          center* (m/transform z t)]
+      (->Circle center*
+                (c/abs (c/- center* (m/transform (c/+real center radius) t)))))))

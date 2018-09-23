@@ -42,6 +42,10 @@
   [^Complex z]
   (.getArgument z))
 
+(defn conjugate
+  [^Complex z]
+  (.conjugate z))
+
 (defn zero?
   [^Complex z]
   (= z zero))
