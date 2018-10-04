@@ -16,6 +16,10 @@
   (let [sqrt-k (c/sqrt k)]
     (m/->Transformation sqrt-k c/zero c/zero (c/reciprocal sqrt-k))))
 
+(defn pure-rotation
+  [angle]
+  (m/->Transformation (c/polar 1.0 angle) c/zero c/zero c/one))
+
 (defn real-line-mapped-to-itself?
   "does the extended real line map to itself?"
   [t]
