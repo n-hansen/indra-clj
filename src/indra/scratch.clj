@@ -81,7 +81,7 @@
     :draw-fn f
     :fps 10}))
 
-(defn square-inversion
+(defn circle-inversion-example
   [canvas window framecount _]
   (binding [g/*max-path-segment-length* 0.005]
     (let [shape (g/->Path [(c/rect 0.2 0.5)
@@ -97,10 +97,10 @@
           (stroke (m/transform shape r/inversion))))))
 
 (comment
-  (make-window #'square-inversion)
+  (make-window #'circle-inversion-example)
   )
 
-(defn loxodromic-map
+(defn loxodromic-map-example
   [canvas _ _ _]
   (set-up-canvas canvas)
   (let [t (m/conjugate (r/pure-scaling (c/rect 1.0 0.4))
@@ -124,5 +124,31 @@
                (dec n))))))
 
 (comment
-  (make-window #'loxodromic-map)
+  (make-window #'loxodromic-map-example)
+  )
+
+(defn pair-circles-example
+  [canvas _ _ _]
+  (set-up-canvas canvas)
+  (let [c1 (g/->Circle c/one 0.8)
+        c2 (g/->Circle (c/- c/one) 0.7)
+        t (r/pair-circles c1 c2)
+        triangle (g/->Path [(c/rect -0.1 -0.2)
+                            (c/rect 0 0.1)
+                            (c/rect 0.1 -0.1)
+                            (c/rect -0.1 -0.2)])]
+    (-> canvas
+        (c2d/set-color :blue)
+        (stroke c1)
+        (c2d/set-color :blue-violet)
+        (stroke c2)
+        (c2d/set-color :forest-green)
+        (stroke triangle)
+        (c2d/set-color :cornflower-blue)
+        (stroke (m/transform triangle t))
+        (c2d/set-color :dark-orange)
+        (stroke (m/transform triangle (m/inverse t))))))
+
+(comment
+  (make-window #'pair-circles-example)
   )

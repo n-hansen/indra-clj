@@ -13,7 +13,7 @@
 (defn pure-translation
   "z ↦ z + b"
   [b]
-  (m/->Transformation c/one b c/one c/zero))
+  (m/->Transformation c/one b c/zero c/one))
 
 (defn pure-scaling
   "z ↦ kz"
