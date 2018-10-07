@@ -54,6 +54,10 @@
   [^Complex z]
   (.isInfinite z))
 
+(defn real?
+  [^Complex z]
+  (= 0.0 (.getImaginary z)))
+
 (defn +
   ([] zero)
   ([x] x)
