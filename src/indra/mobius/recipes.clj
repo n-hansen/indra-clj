@@ -75,5 +75,5 @@
                 (pure-scaling (c/rect s 0))
                 inversion
                 t
-                (pure-scaling (c/rect (/ r)))
+                (pure-scaling (c/rect (/ r) 0))
                 (pure-translation (c/- p))))))

@@ -28,27 +28,30 @@
    (* ^double scale (c/imag z))])
 
 (defprotocol+ Renderable
-  (render* [this canvas]))
+  (render* [this canvas fill?]))
 
 (extend-protocol Renderable
   Complex
-  (render* [z canvas]
+  (render* [z canvas _]
     (let [[x y] (z->xy z)]
       (c2d/point canvas x y)))
 
   indra.geometry.Path
-  (render* [{:keys [points]} canvas]
-    (c2d/path canvas (map z->xy points) false true))
+  (render* [{:keys [points]} canvas fill?]
+    (c2d/path canvas (map z->xy points) false (not fill?)))
 
   indra.geometry.Circle
-  (render* [{:keys [^Complex center ^double radius]} canvas]
+  (render* [{:keys [^Complex center ^double radius]} canvas fill?]
     (let [[x y] (z->xy center)]
-      (c2d/ellipse canvas x y (* radius ^double scale 2) (* radius ^double scale 2)))))
+      (c2d/ellipse canvas x y (* radius ^double scale 2) (* radius ^double scale 2) (not fill?)))))
 
-(defn render
-  ;; convenience function for threading
+(defn stroke
   [canvas thing]
-  (render* thing canvas))
+  (render* thing canvas false))
+
+(defn fill
+  [canvas thing]
+  (render* thing canvas true))
 
 (defn set-up-canvas
   [canvas]
@@ -88,10 +91,32 @@
       (-> canvas
           set-up-canvas
           (c2d/set-color (color/color 50 100 0))
-          (render shape)
+          (stroke shape)
           (c2d/set-awt-color (color/awt-color 100 200 50))
-          (render (m/transform shape r/inversion))))))
+          (stroke (m/transform shape r/inversion))))))
 
 (comment
   (make-window #'square-inversion)
+  )
+
+(defn loxodromic-map
+  [canvas _ _ _]
+  (set-up-canvas canvas)
+  (let [t (m/conjugate (r/pure-scaling (c/rect 1.0 0.4))
+                       (m/make-transformation c/one (c/- c/one) c/one c/one))
+        t-inv (m/inverse t)]
+    (c2d/set-stroke canvas 5)
+    (c2d/set-color canvas (color/color :black))
+    (loop [z- c/zero
+           z+ c/zero
+           n 100]
+      (stroke canvas z-)
+      (stroke canvas z+)
+      (when (pos? n)
+        (recur (m/transform z- t-inv)
+               (m/transform z+ t)
+               (dec n))))))
+
+(comment
+  (make-window #'loxodromic-map)
   )
