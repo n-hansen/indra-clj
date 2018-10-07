@@ -5,6 +5,7 @@
             [indra.mobius :as m]
             [indra.mobius.recipes :as r]
             [indra.complex :as c]
+            [indra.schottky :as schottky]
             [potemkin :refer [defprotocol+]])
   (:import [org.apache.commons.math3.complex Complex]))
 
@@ -151,4 +152,30 @@
 
 (comment
   (make-window #'pair-circles-example)
+  )
+
+(defn schottky-example
+  [canvas _ _ _]
+  (set-up-canvas canvas)
+  (let [c1 (g/->Circle (c/rect 1.7 1) 1.2)
+        c2 (g/->Circle (c/rect -1.6 -1.1) 1.35)
+        c3 (g/->Circle (c/rect 1.2 -1.4) 1.2)
+        c4 (g/->Circle (c/rect -0.9 1.2) 1)
+        disks (schottky/schottkey-disks c1 c2 c3 c4 5
+                                        (m/compose
+                                         (r/pure-rotation 2)
+                                         (r/special-stretch-map 1.03))
+                                        (r/pure-rotation -1))]
+    (doseq [{:keys [depth disk]} disks]
+      (-> canvas
+          (c2d/set-color (case depth
+                           1 :red
+                           2 :orange
+                           3 :yellow
+                           4 :magenta
+                           :green))
+          (fill disk)))))
+
+(comment
+  (make-window #'schottky-example)
   )

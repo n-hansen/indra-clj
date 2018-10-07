@@ -59,7 +59,7 @@
   we require u > 1."
   [^double u]
   (assert (> u 1))
-  (let [v (c/rect (FastMath/sqrt (- (* u u) 1.0)))
+  (let [v (c/rect (FastMath/sqrt (- (* u u) 1.0)) 0)
         u (c/rect u 0)]
     (m/make-transformation u v v u)))
 
