@@ -78,7 +78,8 @@
   (c2d/show-window
    {:window-name "indra"
     :canvas (c2d/canvas 600 600 :high)
-    :draw-fn f}))
+    :draw-fn f
+    :fps 10}))
 
 (defn square-inversion
   [canvas window framecount _]
@@ -104,12 +105,17 @@
   (set-up-canvas canvas)
   (let [t (m/conjugate (r/pure-scaling (c/rect 1.0 0.4))
                        (m/make-transformation c/one (c/- c/one) c/one c/one))
-        t-inv (m/inverse t)]
-    (c2d/set-stroke canvas 5)
+        t-inv (m/inverse t)
+        init (g/->Path [(c/rect -0.1 -0.15)
+                        (c/rect 0 0.1)
+                        (c/rect 0.1 -0.1)
+                        (c/rect -0.1 -0.15)])]
+    (c2d/set-stroke canvas 1)
     (c2d/set-color canvas (color/color :black))
-    (loop [z- c/zero
-           z+ c/zero
-           n 100]
+    (stroke canvas init)
+    (loop [z- init
+           z+ init
+           n 12]
       (stroke canvas z-)
       (stroke canvas z+)
       (when (pos? n)
