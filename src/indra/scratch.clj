@@ -2,7 +2,6 @@
   (:require [clojure2d.core :as c2d]
             [clojure2d.color :as color]
             [indra.geometry :as g]
-            [indra.geometry.render-c2d :refer [render]]
             [indra.mobius :as m]
             [indra.mobius.recipes :as r]
             [indra.complex :as c]
@@ -46,6 +45,11 @@
     (let [[x y] (z->xy center)]
       (c2d/ellipse canvas x y (* radius ^double scale 2) (* radius ^double scale 2)))))
 
+(defn render
+  ;; convenience function for threading
+  [canvas thing]
+  (render* thing canvas))
+
 (defn set-up-canvas
   [canvas]
   (let [max-x (/ ^long (c2d/width canvas) 2)
@@ -77,13 +81,15 @@
 
 (defn draw
   [canvas window framecount _]
-  (-> canvas
-      set-up-canvas
-      (c2d/set-color (color/color 50 100 0))
-      (render shape)
-      (c2d/set-awt-color (color/awt-color 100 200 50))
-      (render (m/transform shape r/inversion))
-      ))
+  (binding [g/*max-path-segment-length* 0.005]
+    (-> canvas
+       set-up-canvas
+       (c2d/set-color (color/color 50 100 0))
+       (render shape)
+       (c2d/set-awt-color (color/awt-color 100 200 50))
+       (render (m/transform shape r/inversion))
+       )))
+
 
 (defn make-window
   []
