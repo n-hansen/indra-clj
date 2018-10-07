@@ -3,7 +3,8 @@
   ;; :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[net.cgrand/xforms "0.18.2"]
+  :dependencies [[clojure2d "1.0.2"]
+                 [net.cgrand/xforms "0.18.2"]
                  [org.clojure/clojure "1.9.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
                  [potemkin "0.4.5"]]
