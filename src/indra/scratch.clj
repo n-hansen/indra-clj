@@ -179,3 +179,30 @@
 (comment
   (make-window #'schottky-example)
   )
+
+(defn fuchsian-example-1
+  [canvas _ _ _]
+  (set-up-canvas canvas)
+  (let [s 0.385
+        t 0.9
+        s* (double (/ s))
+        t* (double (/ t))
+        ca (g/->Circle (c/rect (/ (+ s t) 2) 0) (/ (- t s) 2))
+        cA (g/->Circle (c/rect (/ (+ s t) -2) 0) (/ (- t s) 2))
+        cb (g/->Circle (c/rect (/ (+ s* t*) 2) 0) (/ (- s* t*) 2))
+        cB (g/->Circle (c/rect (/ (+ s* t*) -2) 0) (/ (- s* t*) 2))
+        disks (schottky/schottkey-disks ca cA cb cB 3)]
+    (doseq [{:keys [word disk]} disks]
+      (-> canvas
+          (c2d/set-color (case (first word)
+                           :a :magenta
+                           :A :turquoise
+                           :b :orange
+                           :B :dark-red))
+          (fill disk)
+          (c2d/set-color :black)
+          (stroke disk)))))
+
+(comment
+  (make-window #'fuchsian-example-1)
+  )
