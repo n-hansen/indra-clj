@@ -70,34 +70,28 @@
        (c2d/translate max-x max-y)
        draw-grid)))
 
-(def shape
-  (g/->Path [(c/rect 0.5 0.5)
-             (c/rect 1.1 0.5)
-             (c/rect 1.1 1.1)
-             (c/rect 0.5 1.1)
-             (c/rect 0.5 0.5)])
-  #_(g/->Circle (c/rect 1 1) 0.8))
-
-
-(defn draw
-  [canvas window framecount _]
-  (binding [g/*max-path-segment-length* 0.005]
-    (-> canvas
-       set-up-canvas
-       (c2d/set-color (color/color 50 100 0))
-       (render shape)
-       (c2d/set-awt-color (color/awt-color 100 200 50))
-       (render (m/transform shape r/inversion))
-       )))
-
-
 (defn make-window
-  []
+  [f]
   (c2d/show-window
    {:window-name "indra"
     :canvas (c2d/canvas 600 600 :high)
-    :draw-fn #'draw}))
+    :draw-fn f}))
+
+(defn square-inversion
+  [canvas window framecount _]
+  (binding [g/*max-path-segment-length* 0.005]
+    (let [shape (g/->Path [(c/rect 0.2 0.5)
+                           (c/rect 1.1 0.5)
+                           (c/rect 1.1 1.4)
+                           (c/rect 0.2 1.4)
+                           (c/rect 0.2 0.5)])]
+      (-> canvas
+          set-up-canvas
+          (c2d/set-color (color/color 50 100 0))
+          (render shape)
+          (c2d/set-awt-color (color/awt-color 100 200 50))
+          (render (m/transform shape r/inversion))))))
 
 (comment
-  (make-window)
+  (make-window #'square-inversion)
   )
