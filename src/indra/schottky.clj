@@ -3,6 +3,14 @@
             [indra.mobius.recipes :as r])
   (:import [org.apache.commons.math3.util FastMath]))
 
+(defn pairing-transforms
+  [[c c* t] & rest]
+  (let [s (r/pair-circles c c* (or t m/unit))]
+    (concat
+     [s (m/inverse s)]
+     (when (not-empty rest)
+       (apply pairing-transforms rest)))))
+
 (defn word-list
   [max-depth]
   (loop [depth 1
@@ -20,12 +28,9 @@
                (conj word letter))))))
 
 (defn schottkey-disks
-  ([a1 a2 b1 b2 depth] (schottkey-disks a1 a2 b1 b2 depth m/unit m/unit))
+  ([a1 a2 b1 b2 depth] (schottkey-disks a1 a2 b1 b2 depth nil nil))
   ([a1 a2 b1 b2 depth ta tb]
-   (let [a1->a2 (r/pair-circles a1 a2 ta)
-         a2->a1 (m/inverse a1->a2)
-         b1->b2 (r/pair-circles b1 b2 tb)
-         b2->b1 (m/inverse b1->b2)
+   (let [[a1->a2 a2->a1 b1->b2 b2->b1] (pairing-transforms [a1 a2 ta] [b1 b2 tb])
          init-disks {:a a1 :A a2 :b b1 :B b2}
          transforms {:a a2->a1 :A a1->a2 :b b2->b1 :B b1->b2}]
      ;; technically, we have the letter order backwards here but it doesnt matter so whatevs

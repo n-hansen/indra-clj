@@ -74,7 +74,7 @@
        (take-while some?)))
 
 (defn limit-set-fixed-depth-dfs
-  [a a* b b* depth preimages]
+  [a a* b b* preimages depth]
   (for [word (all-words depth)
         p preimages]
     (m/transform p (word->transform a a* b b* word))))

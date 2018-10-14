@@ -6,6 +6,7 @@
             [indra.mobius.recipes :as r]
             [indra.complex :as c]
             [indra.schottky :as schottky]
+            [indra.limit-sets :as ls]
             [potemkin :refer [defprotocol+]])
   (:import [org.apache.commons.math3.complex Complex]))
 
@@ -205,4 +206,35 @@
 
 (comment
   (make-window #'fuchsian-example-1)
+  )
+
+(def limit-set-1
+  (let [c1 (g/->Circle (c/rect 1.7 1) 1.2)
+        c2 (g/->Circle (c/rect -1.6 -1.1) 1.35)
+        c3 (g/->Circle (c/rect 1.2 -1.4) 1.2)
+        c4 (g/->Circle (c/rect -0.9 1.2) 1)
+        [a a* b b*] (schottky/pairing-transforms [c1 c2 (m/compose
+                                                         (r/pure-rotation 1.9)
+                                                         (r/special-stretch-map 1.03))]
+                                                 [c3 c4 (r/pure-rotation -1)])
+        preimages [(c/rect 1 1)
+                   c/zero
+                   c/one
+                   c/i
+                   (c/- c/one)
+                   (c/- c/i)]]
+    (ls/limit-set-fixed-depth-dfs a a* b b* preimages 4)))
+
+(defn limit-set-example-1
+  [canvas _ _ _]
+  (-> (set-up-canvas canvas)
+      (c2d/set-stroke 2))
+  (doseq [[ix p] (map-indexed vector limit-set-1)
+          :let [c ((color/gradient-presets :iq-7) (/ ix (dec (count limit-set-1))))]]
+    (-> canvas
+        (c2d/set-color c)
+        (fill p))))
+
+(comment
+  (make-window #'limit-set-example-1)
   )
