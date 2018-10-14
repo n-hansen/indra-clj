@@ -26,9 +26,10 @@
     (is (= (next-word [:a :b :A]) [:b :a :B]))
     (is (= (next-word [:B :a]) nil)))
   (testing "a long sequence"
-    (is (= (apply * 4 (repeat 9 3))
-           (->> (first-word 10)
-                (iterate next-word)
-                (take-while some?)
-                count))))
-  )
+    (let [words (->> (first-word 10)
+                     (iterate next-word)
+                     (take-while some?))]
+      (is (= (apply * 4 (repeat 9 3))
+             (count words)
+             (count (set words))))
+      (is (every? #(= 10 (count %)) words)))))
