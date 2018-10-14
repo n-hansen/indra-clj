@@ -8,7 +8,8 @@
             [indra.schottky :as schottky]
             [indra.limit-sets :as ls]
             [potemkin :refer [defprotocol+]])
-  (:import [org.apache.commons.math3.complex Complex]))
+  (:import [org.apache.commons.math3.complex Complex]
+           [org.apache.commons.math3.util FastMath]))
 
 ;; make everything really annoying forever
 (set! *warn-on-reflection* true)
@@ -22,7 +23,7 @@
 ;; provides a scaling procedure but it doesn't really work that well
 ;; for our use case, so we perform scaling by hand before passing to
 ;; the various rendering functions
-(def scale 100.0)
+(def scale 150.0)
 
 (defn z->xy
   [z]
@@ -217,7 +218,7 @@
                                                          (r/pure-rotation 1.9)
                                                          (r/special-stretch-map 1.03))]
                                                  [c3 c4 (r/pure-rotation -1)])
-        repetends  [[:a] [:b] [:A] [:B]]]
+        repetends  [[:a] [:b] [:A] [:B] [:a :b :A :B]]]
     (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends 6))))
 
 (defn limit-set-example-1
@@ -232,4 +233,31 @@
 
 (comment
   (make-window #'limit-set-example-1)
+  )
+
+;; kissing fuchsian limit set
+
+(def fuchsian-example-2-limit-set
+  (let [sqrt2 (c/rect (FastMath/sqrt 2) 0)
+        a (m/make-transformation sqrt2     c/i
+                                 (c/- c/i) sqrt2)
+        a* (m/inverse a)
+        b (m/make-transformation sqrt2 c/one
+                                 c/one sqrt2)
+        b* (m/inverse b)
+        repetends  [[:a] [:b] [:A] [:B] [:a :b :A :B]]]
+    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends 7))))
+
+(defn fuchsian-example-2
+  [canvas _ _ _]
+  (-> (set-up-canvas canvas)
+      (c2d/set-stroke 2))
+  (doseq [[ix p] (map-indexed vector fuchsian-example-2-limit-set)
+          :let [c ((color/gradient-presets :iq-1) (/ ix (dec (count fuchsian-example-2-limit-set))))]]
+    (-> canvas
+        (c2d/set-color c)
+        (fill p))))
+
+(comment
+  (make-window #'fuchsian-example-2)
   )
