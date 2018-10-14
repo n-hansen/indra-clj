@@ -47,6 +47,7 @@
       (recur (conj w (-> w peek first-child))))))
 
 (defn next-word
+  "depth-first traversal of the cayley graph"
   [word]
   (let [final-ix (dec (count word))]
     (loop [word word
@@ -67,14 +68,19 @@
                        (inc ix))))))))))
 
 (defn all-words
-  "all words of length n"
+  "all words of length n in dfs order"
   [n]
   (->> (first-word n)
        (iterate next-word)
        (take-while some?)))
 
 (defn limit-set-fixed-depth-dfs
-  [a a* b b* preimages depth]
-  (for [word (all-words depth)
-        p preimages]
-    (m/transform p (word->transform a a* b b* word))))
+  [a a* b b* repetends depth]
+  (let [preimages (for [repetend repetends]
+                    (->> repetend
+                         (word->transform a a* b b*)
+                         m/fixed-points
+                         first))]
+    (for [word (all-words depth)
+          p preimages]
+      (m/transform p (word->transform a a* b b* word)))))

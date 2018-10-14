@@ -217,19 +217,15 @@
                                                          (r/pure-rotation 1.9)
                                                          (r/special-stretch-map 1.03))]
                                                  [c3 c4 (r/pure-rotation -1)])
-        preimages  [c/zero
-                    c/one
-                    c/i
-                    (c/- c/one)
-                    (c/- c/i)]]
-    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* preimages 6))))
+        repetends  [[:a] [:b] [:A] [:B]]]
+    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends 6))))
 
 (defn limit-set-example-1
   [canvas _ _ _]
   (-> (set-up-canvas canvas)
       (c2d/set-stroke 2))
   (doseq [[ix p] (map-indexed vector limit-set-1)
-          :let [c ((color/gradient-presets :iq-7) (/ ix (dec (count limit-set-1))))]]
+          :let [c ((color/gradient-presets :iq-1) (/ ix (dec (count limit-set-1))))]]
     (-> canvas
         (c2d/set-color c)
         (fill p))))
