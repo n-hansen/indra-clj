@@ -217,13 +217,12 @@
                                                          (r/pure-rotation 1.9)
                                                          (r/special-stretch-map 1.03))]
                                                  [c3 c4 (r/pure-rotation -1)])
-        preimages [(c/rect 1 1)
-                   c/zero
-                   c/one
-                   c/i
-                   (c/- c/one)
-                   (c/- c/i)]]
-    (ls/limit-set-fixed-depth-dfs a a* b b* preimages 4)))
+        preimages  [c/zero
+                    c/one
+                    c/i
+                    (c/- c/one)
+                    (c/- c/i)]]
+    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* preimages 6))))
 
 (defn limit-set-example-1
   [canvas _ _ _]
