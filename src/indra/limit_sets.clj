@@ -30,7 +30,7 @@
     :A :B
     :B :a))
 
-(defn prev-letter
+(defn first-child
   [ltr]
   (case ltr
     :b :a
@@ -44,7 +44,7 @@
   (loop [w [:a]]
     (if (= depth (count w))
       w
-      (recur (conj w (-> w peek prev-letter))))))
+      (recur (conj w (-> w peek first-child))))))
 
 (defn next-word
   [word]
@@ -63,7 +63,7 @@
                 word
                 (recur (assoc word
                               (inc ix)
-                              (-> word (nth ix) (prev-letter)))
+                              (-> word (nth ix) (first-child)))
                        (inc ix))))))))))
 
 (defn all-words
