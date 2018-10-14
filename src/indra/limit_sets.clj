@@ -66,3 +66,15 @@
                               (-> word (nth ix) (prev-letter)))
                        (inc ix))))))))))
 
+(defn all-words
+  "all words of length n"
+  [n]
+  (->> (first-word n)
+       (iterate next-word)
+       (take-while some?)))
+
+(defn limit-set-fixed-depth-dfs
+  [a a* b b* depth preimages]
+  (for [word (all-words depth)
+        p preimages]
+    (m/transform p (word->transform a a* b b* word))))
