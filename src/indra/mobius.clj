@@ -80,6 +80,7 @@
   (c/+ a d))
 
 (defn fixed-points
+  "returns [sink source]"
   [{:keys [a b c d] :as t}]
   ;; z = (az+b)/(cz+d)
   ;; => 0 = cz^2 + (d-a)z - b
@@ -87,6 +88,13 @@
   (let [c2 (c/*real c 2.0)
         lh (c/- a d)
         d-a (c/- d a)
-        rh (c/sqrt (c/+ (c/* d-a d-a) (c/*real (c/* b c) 4.0)))]
-    [(c/div (c/+ lh rh) c2)
-     (c/div (c/- lh rh) c2)]))
+        rh (c/sqrt (c/+ (c/* d-a d-a) (c/*real (c/* b c) 4.0)))
+        z1 (c/div (c/+ lh rh) c2)
+        z2 (c/div (c/- lh rh) c2)
+        tr (trace t)
+        ;; computing k for loxodromic maps in order to differentiate sources and sinks
+        ;; k = ((tr + sqrt(tr^2 - 4))/2)^2. we're a bit sloppy and drop final square
+        k (c/div-real (c/+ tr (c/sqrt (c/-real (c/pow-real tr 2) 4))) 2)]
+    (if (< 1 (c/abs k))
+      [z1 z2]
+      [z2 z1])))
