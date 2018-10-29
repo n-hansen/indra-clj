@@ -1,7 +1,8 @@
 (ns indra.mobius
   (:require [indra.complex :as c]
             [potemkin :refer [defprotocol+]])
-  (:import [org.apache.commons.math3.complex Complex]))
+  (:import [org.apache.commons.math3.complex Complex]
+           [org.apache.commons.math3.util Precision]))
 
 ;; the group of mobius transformations
 
@@ -98,3 +99,27 @@
     (if (< 1 (c/abs k))
       [z1 z2]
       [z2 z1])))
+
+(defn classify
+  ;; loxodromic maps have one source and one sink, and are conjugate to some T(z) = kz, |k| > 1.
+  ;; hyperbolic maps are loxodromic maps with a real trace, implying k real.
+  ;; elliptic maps have two neutral fixed points, and are conjugate to some T(z) = kz, |k| = 1.
+  ;; parabolic maps have one fixed point which is both a source and a sink, and are conjugate to
+  ;; some T(z) = z + a.
+  ([t] (classify t Precision/EPSILON))
+  ([t ^double epsilon]
+   (let [=* #(Precision/equals %1 %2 epsilon)
+         tr (trace t)]
+     (cond
+       (and (c/real? tr)
+            (=* 2.0 (c/abs tr)))
+       :parabolic
+
+       (and (c/real? tr)
+            (< -2 (c/real tr) 2))
+       :elliptic
+
+       (c/real? tr)
+       :hyperbolic
+
+       :else :loxodromic))))
