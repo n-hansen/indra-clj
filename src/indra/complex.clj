@@ -102,7 +102,7 @@
 (defn =*
   ([x y] (=* x y 1e-9))
   ([x y ^double e]
-   (<= (-> (- x y) abs) e)))
+   (>= e (abs (- x y)))))
 
 ; arithmetic operations by a scalar
 
