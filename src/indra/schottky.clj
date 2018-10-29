@@ -30,9 +30,10 @@
 (defn schottkey-disks
   ([a1 a2 b1 b2 depth] (schottkey-disks a1 a2 b1 b2 depth nil nil))
   ([a1 a2 b1 b2 depth ta tb]
-   (let [[a1->a2 a2->a1 b1->b2 b2->b1] (pairing-transforms [a1 a2 ta] [b1 b2 tb])
-         init-disks {:a a1 :A a2 :b b1 :B b2}
-         transforms {:a a2->a1 :A a1->a2 :b b2->b1 :B b1->b2}]
+   (let [[a1->a2 a2->a1 b1->b2 b2->b1] (pairing-transforms [a1 a2 ta] [b1 b2 tb])]
+     (schottkey-disks a1 a2 b1 b2 depth {:a a2->a1 :A a1->a2 :b b2->b1 :B b1->b2})))
+  ([a1 a2 b1 b2 depth transforms]
+   (let [init-disks {:a a1 :A a2 :b b1 :B b2}]
      ;; technically, we have the letter order backwards here but it doesnt matter so whatevs
      (for [[head & tail :as word] (word-list depth)]
        {:depth (count word)

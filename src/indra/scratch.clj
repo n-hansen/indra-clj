@@ -291,10 +291,11 @@
 
 ;; quasi-fuchsian group
 
-(def quasi-fuchsian-example-1-limit-set
-  (let [y 0.9
+(def quasi-fuchsian-example-1
+  (let [depth 8
+        y 0.95
         x (FastMath/sqrt (+ 1 (* y y)))
-        k 1.5
+        k 1.9
         v (/ (* y (/ (+ k (/ k)) 2)))
         u (FastMath/sqrt (+ 1 (* v v)))
         a (m/make-transformation (c/rect x 0) (c/rect y 0)
@@ -303,19 +304,39 @@
         b (m/make-transformation (c/rect u 0)           (c/rect 0 (* k v))
                                  (c/rect 0 (- (/ v k))) (c/rect u 0))
         b* (m/inverse b)
-        repetends  [#_#_#_#_[:a] [:b] [:A] [:B] [:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]]
-    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends 6))))
 
-(defn quasi-fuchsian-example-1
+        ca  (g/->Circle (c/rect    (/ x y)  0) (/ y))
+        ca* (g/->Circle (c/rect (- (/ x y)) 0) (/ y))
+        cb  (g/->Circle (c/rect 0    (/ (* k u) v))  (/ k v))
+        cb* (g/->Circle (c/rect 0 (- (/ (* k u) v))) (/ k v))
+
+        disks (schottky/schottkey-disks ca ca* cb cb* depth {:a a :A a* :b b :B b*})
+
+        repetends  [#_#_#_#_[:a] [:b] [:A] [:B] [:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]
+        limit-set (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends depth))]
+    {:disks disks
+     :limit-set limit-set}))
+
+(defn quasi-fuchsian-example-1-disks-render
+  [canvas _ _ _]
+  (set-up-canvas canvas)
+  (doseq [{:keys [depth disk]} (:disks quasi-fuchsian-example-1)]
+    (-> canvas
+        (c2d/set-color ((color/gradient-presets :iq-6)
+                        (mod (/ depth 7.0) 1)))
+        (fill disk))))
+
+(defn quasi-fuchsian-example-1-limit-set-render
   [canvas _ _ _]
   (-> (set-up-canvas canvas)
       (c2d/set-stroke 1.5))
-  (doseq [[ix p] (map-indexed vector quasi-fuchsian-example-1-limit-set)
-          :let [c ((color/gradient-presets :iq-1) (/ ix (dec (count quasi-fuchsian-example-1-limit-set))))]]
+  (doseq [[ix p] (map-indexed vector (:limit-set quasi-fuchsian-example-1))
+          :let [c ((color/gradient-presets :iq-1) (/ (double ix) (dec (count quasi-fuchsian-example-1-limit-set))))]]
     (-> canvas
         (c2d/set-color c)
         (fill p))))
 
 (comment
-  (make-window #(quasi-fuchsian-example-1 %1 %2 %3 %4))
+  (make-window #(quasi-fuchsian-example-1-disks-render %1 %2 %3 %4))
+  (make-window #(quasi-fuchsian-example-1-limit-set-render %1 %2 %3 %4))
   )
