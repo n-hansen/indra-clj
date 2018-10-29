@@ -170,7 +170,7 @@
                                         (r/pure-rotation -1))]
     (doseq [{:keys [depth disk]} disks]
       (-> canvas
-          (c2d/set-color (case depth
+          (c2d/set-color (case (int depth)
                            1 :red
                            2 :orange
                            3 :yellow
