@@ -82,7 +82,7 @@
    {:window-name "indra"
     :canvas (c2d/canvas 600 600 :high)
     :draw-fn f
-    :fps 10}))
+    #_#_:fps 10}))
 
 (defn circle-inversion-example
   [canvas window framecount _]
@@ -179,7 +179,7 @@
           (fill disk)))))
 
 (comment
-  (make-window #'schottky-example)
+  (make-window #(schottky-example %1 %2 %3 %4))
   )
 
 (defn fuchsian-example-1
@@ -262,8 +262,9 @@
   (make-window #'fuchsian-example-2)
   )
 
+;; perturbation of a fuchsian group
 
-(def twisted-fuchsian-example-1-limit-set
+(def limit-set-example-2-limit-set
   (let [sqrt2 (c/rect (FastMath/sqrt 1.9) 0.4)
         a (m/make-transformation sqrt2     c/i
                                  (c/- c/i) sqrt2)
@@ -274,16 +275,47 @@
         repetends  [#_#_#_#_[:a] [:b] [:A] [:B] [:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]]
     (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends 10))))
 
-(defn twisted-fuchsian-example-1
+(defn limit-set-example-2
   [canvas _ _ _]
   (-> (set-up-canvas canvas)
       (c2d/set-stroke 1))
-  (doseq [[ix p] (map-indexed vector twisted-fuchsian-example-1-limit-set)
-          :let [c ((color/gradient-presets :iq-1) (/ ix (dec (count twisted-fuchsian-example-1-limit-set))))]]
+  (doseq [[ix p] (map-indexed vector limit-set-example-2-limit-set)
+          :let [c ((color/gradient-presets :iq-1) (/ ix (dec (count limit-set-example-2-limit-set))))]]
     (-> canvas
         (c2d/set-color c)
         (fill p))))
 
 (comment
-  (make-window #'twisted-fuchsian-example-1)
+  (make-window #'limit-set-example-2)
+  )
+
+;; quasi-fuchsian group
+
+(def quasi-fuchsian-example-1-limit-set
+  (let [y 0.9
+        x (FastMath/sqrt (+ 1 (* y y)))
+        k 1.5
+        v (/ (* y (/ (+ k (/ k)) 2)))
+        u (FastMath/sqrt (+ 1 (* v v)))
+        a (m/make-transformation (c/rect x 0) (c/rect y 0)
+                                 (c/rect y 0) (c/rect x 0))
+        a* (m/inverse a)
+        b (m/make-transformation (c/rect u 0)           (c/rect 0 (* k v))
+                                 (c/rect 0 (- (/ v k))) (c/rect u 0))
+        b* (m/inverse b)
+        repetends  [#_#_#_#_[:a] [:b] [:A] [:B] [:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]]
+    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends 6))))
+
+(defn quasi-fuchsian-example-1
+  [canvas _ _ _]
+  (-> (set-up-canvas canvas)
+      (c2d/set-stroke 1.5))
+  (doseq [[ix p] (map-indexed vector quasi-fuchsian-example-1-limit-set)
+          :let [c ((color/gradient-presets :iq-1) (/ ix (dec (count quasi-fuchsian-example-1-limit-set))))]]
+    (-> canvas
+        (c2d/set-color c)
+        (fill p))))
+
+(comment
+  (make-window #(quasi-fuchsian-example-1 %1 %2 %3 %4))
   )
