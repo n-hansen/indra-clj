@@ -312,7 +312,7 @@
 
         disks (schottky/schottkey-disks ca ca* cb cb* depth {:a a :A a* :b b :B b*})
 
-        repetends  [#_#_#_#_[:a] [:b] [:A] [:B] [:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]
+        repetends [#_#_#_#_[:a] [:b] [:A] [:B] [:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]
         limit-set (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends depth))]
     {:disks disks
      :limit-set limit-set}))
@@ -323,7 +323,7 @@
   (doseq [{:keys [depth disk]} (:disks quasi-fuchsian-example-1)]
     (-> canvas
         (c2d/set-color ((color/gradient-presets :iq-6)
-                        (mod (/ depth 7.0) 1)))
+                        (mod (/ depth 12.0) 1)))
         (fill disk))))
 
 (defn quasi-fuchsian-example-1-limit-set-render
@@ -331,7 +331,8 @@
   (-> (set-up-canvas canvas)
       (c2d/set-stroke 1.5))
   (doseq [[ix p] (map-indexed vector (:limit-set quasi-fuchsian-example-1))
-          :let [c ((color/gradient-presets :iq-1) (/ (double ix) (dec (count quasi-fuchsian-example-1-limit-set))))]]
+          :let [c ((color/gradient-presets :iq-1)
+                   (/ (double ix) (dec (count (:limit-set quasi-fuchsian-example-1)))))]]
     (-> canvas
         (c2d/set-color c)
         (fill p))))
@@ -339,4 +340,38 @@
 (comment
   (make-window #(quasi-fuchsian-example-1-disks-render %1 %2 %3 %4))
   (make-window #(quasi-fuchsian-example-1-limit-set-render %1 %2 %3 %4))
+  )
+
+;; apollonian gasket, half plane projection
+
+(def apollonian-hp-transforms
+  (let [a (m/make-transformation c/one         c/zero
+                                 (c/rect 0 -2) c/one)
+        a* (m/inverse a)
+        b (m/make-transformation (c/rect 1 -1) c/one
+                                 c/one         (c/rect 1 1))
+        b* (m/inverse b)]
+    {:a a :A a* :b b :B b*}))
+
+(def apollonian-hp-limit-set
+  (let [depth 10
+        {a :a a* :A b :b b* :B} apollonian-hp-transforms
+        repetends [[:a] #_#_#_[:b] [:A] [:B]
+                   #_#_#_#_[:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]]
+    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends depth))))
+
+(defn apollonian-hp-limit-set-render
+  [canvas _ _ _]
+  (-> (set-up-canvas canvas)
+      (c2d/set-stroke 0.5)
+      #_(stroke (g/->Path apollonian-hp-limit-set)))
+  (doseq [[ix p] (map-indexed vector apollonian-hp-limit-set)
+          :let [c ((color/gradient-presets :iq-1)
+                   (/ (double ix) (dec (count apollonian-hp-limit-set))))]]
+    (-> canvas
+        (c2d/set-color c)
+        (fill (c/*real p 2)))))
+
+(comment
+  (make-window #(apollonian-hp-limit-set-render %1 %2 %3 %4))
   )
