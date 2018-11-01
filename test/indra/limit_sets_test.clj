@@ -16,17 +16,17 @@
       (is (every? #(-> % next-letter next-letter (inverse-letter? %))
                   letters)))))
 
-(deftest next-word-test
+(deftest next-word-at-depth-test
   (testing "increment"
-    (is (= (next-word [:a]) [:b]))
-    (is (= (next-word [:b]) [:A]))
-    (is (= (next-word [:A]) [:B]))
-    (is (= (next-word [:B]) nil))
-    (is (= (next-word [:a :a]) [:a :b])))
+    (is (= (next-word-at-depth [:a]) [:b]))
+    (is (= (next-word-at-depth [:b]) [:A]))
+    (is (= (next-word-at-depth [:A]) [:B]))
+    (is (= (next-word-at-depth [:B]) nil))
+    (is (= (next-word-at-depth [:a :a]) [:a :b])))
   (testing "carry"
-    (is (= (next-word [:a :b]) [:b :a]))
-    (is (= (next-word [:a :b :A]) [:b :a :B]))
-    (is (= (next-word [:B :a]) nil)))
+    (is (= (next-word-at-depth [:a :b]) [:b :a]))
+    (is (= (next-word-at-depth [:a :b :A]) [:b :a :B]))
+    (is (= (next-word-at-depth [:B :a]) nil)))
   (testing "a long sequence"
     (let [words (all-words 10)]
       (is (= (apply * 4 (repeat 9 3))

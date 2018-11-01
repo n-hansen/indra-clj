@@ -30,7 +30,7 @@
     :A :B
     :B :a))
 
-(defn first-child
+(defn previous-letter
   [ltr]
   (case ltr
     :b :a
@@ -38,7 +38,11 @@
     :B :A
     :a :B))
 
-(defn first-word
+; some useful synonymns
+(def first-child previous-letter)
+(def last-child next-letter)
+
+(defn first-word-at-depth
   "first word of length n on the cayley graph"
   [depth]
   (loop [w [:a]]
@@ -46,7 +50,7 @@
       w
       (recur (conj w (-> w peek first-child))))))
 
-(defn next-word
+(defn next-word-at-depth
   "depth-first traversal of the cayley graph"
   [word]
   (let [final-ix (dec (count word))]
@@ -70,8 +74,8 @@
 (defn all-words
   "all words of length n in dfs order"
   [n]
-  (->> (first-word n)
-       (iterate next-word)
+  (->> (first-word-at-depth n)
+       (iterate next-word-at-depth)
        (take-while some?)))
 
 (defn limit-set-fixed-depth-dfs
