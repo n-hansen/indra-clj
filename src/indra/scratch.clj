@@ -84,6 +84,14 @@
     :draw-fn f
     #_#_:fps 10}))
 
+(defn make-window-next
+  [img]
+  (c2d/show-window
+   {:window-name (str "indra-" (rand-int 1000000))
+    :canvas (c2d/canvas 600 600 :high)
+    :draw-fn (fn [c _ _ _] (some? @img) (c2d/image c @img))
+    #_#_:fps 10}))
+
 (defn circle-inversion-example
   [canvas window framecount _]
   (binding [g/*max-path-segment-length* 0.005]
@@ -344,34 +352,30 @@
 
 ;; apollonian gasket, half plane projection
 
-(def apollonian-hp-transforms
-  (let [a (m/make-transformation c/one         c/zero
+(defonce apollonian-image (atom nil))
+
+(defn apollonian-image-render
+  []
+  (let [depth 50
+        epsilon 5e-3
+        a (m/make-transformation c/one         c/zero
                                  (c/rect 0 -2) c/one)
-        a* (m/inverse a)
         b (m/make-transformation (c/rect 1 -1) c/one
                                  c/one         (c/rect 1 1))
-        b* (m/inverse b)]
-    {:a a :A a* :b b :B b*}))
-
-(def apollonian-hp-limit-set
-  (let [depth 10
-        {a :a a* :A b :b b* :B} apollonian-hp-transforms
-        repetends [[:a] #_#_#_[:b] [:A] [:B]
-                   #_#_#_#_[:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]]
-    (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends depth))))
-
-(defn apollonian-hp-limit-set-render
-  [canvas _ _ _]
-  (-> (set-up-canvas canvas)
-      (c2d/set-stroke 0.5)
-      #_(stroke (g/->Path apollonian-hp-limit-set)))
-  (doseq [[ix p] (map-indexed vector apollonian-hp-limit-set)
-          :let [c ((color/gradient-presets :iq-1)
-                   (/ (double ix) (dec (count apollonian-hp-limit-set))))]]
-    (-> canvas
-        (c2d/set-color c)
-        (fill (c/*real p 2)))))
+        limit-set (ls/limit-set-dfs a b depth epsilon
+                                    [[:a] [:b] [:A] [:B]])]
+    (c2d/with-canvas [canvas (c2d/canvas 600 600)]
+      (set-up-canvas canvas)
+      (c2d/set-stroke canvas 1)
+      (doseq [[ix p] (map-indexed vector limit-set)
+              :let [c ((color/gradient-presets :iq-1)
+                       (* (double ix) epsilon 0.1))]]
+        (-> canvas
+            (c2d/set-color c)
+            (fill (c/*real p 2))))
+      (reset! apollonian-image (c2d/get-image canvas)))))
 
 (comment
-  (make-window #(apollonian-hp-limit-set-render %1 %2 %3 %4))
+  (make-window-next apollonian-image)
+  (apollonian-image-render)
   )
