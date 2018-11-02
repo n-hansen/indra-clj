@@ -23,7 +23,7 @@
 ;; provides a scaling procedure but it doesn't really work that well
 ;; for our use case, so we perform scaling by hand before passing to
 ;; the various rendering functions
-(def scale 150.0)
+(def scale 300.0)
 
 (defn z->xy
   [z]
@@ -94,7 +94,7 @@
 
 (defn render-limit-points
   [limit-set]
-  (c2d/with-canvas [canvas (c2d/canvas 600 600)]
+  (c2d/with-canvas [canvas (c2d/canvas 1200 1200 :high)]
     (set-up-canvas canvas)
     (c2d/set-stroke canvas 1)
     (let [s (volatile! 0)]
@@ -366,7 +366,7 @@
 (defn apollonian-image-render
   []
   (let [depth 50
-        epsilon 5e-3
+        epsilon 5e-4
         a (m/make-transformation c/one         c/zero
                                  (c/rect 0 -2) c/one)
         b (m/make-transformation (c/rect 1 -1) c/one
@@ -378,4 +378,5 @@
 (comment
   (make-window-next apollonian-image)
   (apollonian-image-render)
+  (c2d/save @apollonian-image "renders/apollonian_gasket.png")
   )
