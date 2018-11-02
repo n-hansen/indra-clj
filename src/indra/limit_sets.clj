@@ -95,7 +95,7 @@
 (defn next-word-and-ascend
   "increment the least-significant letter of the word, ascending the cayley graph as necessary.
 
-  bottoms out at [x (last-child x)] for some reason ¯|_(ツ)_|¯"
+  bottoms out at [x (last-child x)] (i.e. you won't cycle between top level branches) ¯|_(ツ)_|¯"
   [word]
   (let [this (peek word)
         ancestors (pop word)]
@@ -123,34 +123,40 @@
                           ;; TODO special repetends
                           [final-commutator])])))
 
+(defn limit-set-dfs-section
+  [a b max-depth epsilon special-repetends start end]
+  (let [a* (m/inverse a)
+        b* (m/inverse b)
+        preimages (->> (repetend-table special-repetends)
+                       (map (fn [[ltr reps]]
+                              [ltr (mapv #(->> %
+                                               (word->transform a a* b b*)
+                                               m/fixed-points
+                                               first)
+                                         reps)]))
+                       (into {}))
+        go (fn continue [current-word]
+             (when (and (some? current-word)
+                        (not= current-word end))
+               (let [t (word->transform a a* b b* current-word)
+                     test-points (->> (peek current-word)
+                                      (preimages)
+                                      (map #(m/transform % t)))]
+                 (if (or (= max-depth (count current-word))
+                         (->> test-points
+                              (partition 2 1)
+                              (every? (fn [[z1 z2]]
+                                        (> epsilon
+                                           (c/abs (c/- z1 z2)))))))
+                   (lazy-cat test-points
+                             (continue (next-word-and-ascend current-word)))
+                   (recur (conj current-word
+                                (-> current-word peek first-child)))))))]
+    (go start)))
+
 (defn limit-set-dfs
-  ([a b max-depth epsilon start end] (limit-set-dfs a b max-depth epsilon start end nil))
-  ([a b max-depth epsilon start end special-repetends]
-   (let [a* (m/inverse a)
-         b* (m/inverse b)
-         preimages (->> (repetend-table special-repetends)
-                        (map (fn [[ltr reps]]
-                               [ltr (mapv #(->> %
-                                                (word->transform a a* b b*)
-                                                m/fixed-points
-                                                first)
-                                          reps)]))
-                        (into {}))
-         go (fn continue [current-word]
-              (when (and (some? current-word)
-                         (not= current-word end))
-                (let [t (word->transform a a* b b* current-word)
-                      test-points (->> (peek current-word)
-                                       (preimages)
-                                       (map #(m/transform % t)))]
-                  (if (or (= max-depth (count current-word))
-                          (->> test-points
-                               (partition 2 1)
-                               (every? (fn [[z1 z2]]
-                                         (> epsilon
-                                            (c/abs (c/- z1 z2)))))))
-                    (lazy-cat test-points
-                              (continue (next-word-and-ascend current-word)))
-                    (recur (conj current-word
-                                 (-> current-word peek first-child)))))))]
-     (go start))))
+  ([a b max-depth epsilon] (limit-set-dfs a b max-depth epsilon nil))
+  ([a b max-depth epsilon special-repetends]
+   (for [branch [:a :b :A :B]
+         point (limit-set-dfs-section a b max-depth epsilon special-repetends [branch (first-child branch)] nil)]
+     point)))

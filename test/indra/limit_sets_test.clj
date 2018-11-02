@@ -85,8 +85,16 @@
                                  (c/- c/i) sqrt2)
         b (m/make-transformation sqrt2 c/one
                                  c/one sqrt2)
-        distances  (->> (limit-set-dfs a b 12 1e-7 (first-word-at-depth 4) nil)
-                        (map c/abs))
         ; can't crank precision past 1e-7 because that's what the fixed point of [:a :b :A :B] resolves to
-        failures (remove #(Precision/equals 1.0 % 1e-7) distances)]
-    (is (= 0 (count failures)))))
+        limit-set (limit-set-dfs a b 5 1e-1)]
+    (testing "limit points lie on the unit circle"
+      (is (= 0 (->> limit-set
+                    (map c/abs)
+                    (remove #(Precision/equals 1.0 % 1e-7))
+                    count))))
+    (testing "limit points lie in all 4 quadrants"
+      (is (= 4 (->> limit-set
+                    (map (juxt (comp pos? c/real)
+                               (comp pos? c/imag)))
+                    (into #{})
+                    count))))))
