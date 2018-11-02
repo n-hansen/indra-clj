@@ -105,7 +105,7 @@
                :let [c ((color/gradient-presets :iq-1)
                         (vswap! s + (* (c/abs (c/- p1 p2)) 0.03)))]]
          (when (and (some? progress-to)
-                    (zero? (mod ix 1000)))
+                    (zero? (mod ix 2000)))
            (reset! progress-to (c2d/get-image canvas)))
          (-> canvas
              (c2d/set-color c)
@@ -371,8 +371,8 @@
 
 (defn apollonian-image-render
   []
-  (let [depth 100
-        epsilon 5e-4
+  (let [depth 150
+        epsilon 5e-5
         a (m/make-transformation c/one         c/zero
                                  (c/rect 0 -2) c/one)
         b (m/make-transformation (c/rect 1 -1) c/one
