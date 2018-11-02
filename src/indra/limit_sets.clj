@@ -1,5 +1,6 @@
 (ns indra.limit-sets
-  (:require [indra.mobius :as m]))
+  (:require [indra.mobius :as m]
+            [indra.complex :as c]))
 
 ;; DFS with static depth and fixed preimage list
 
@@ -51,7 +52,7 @@
       (recur (conj w (-> w peek first-child))))))
 
 (defn next-word-at-depth
-  "depth-first traversal of the cayley graph"
+  "traversal of the cayley graph keeping depth constant"
   [word]
   (let [final-ix (dec (count word))]
     (loop [word word
@@ -88,3 +89,68 @@
     (for [word (all-words depth)
           p preimages]
       (m/transform p (word->transform a a* b b* word)))))
+
+;; DFS for limit points to a maximum depth or displacement
+
+(defn next-word-and-ascend
+  "increment the least-significant letter of the word, ascending the cayley graph as necessary.
+
+  bottoms out at [x (last-child x)] for some reason ¯|_(ツ)_|¯"
+  [word]
+  (let [this (peek word)
+        ancestors (pop word)]
+    (when-let [parent (peek ancestors)]
+      (if (not= this (last-child parent))
+        (conj ancestors (next-letter this))
+        (recur ancestors)))))
+
+(defn repetend-table
+  "generate a set of repetends to examine for a given prefix.
+
+  will return the initial and final cyclic permutations of the commutator, plus
+  any special repetends whose final letter matches the final letter of the prefix."
+  [special-repetends]
+  (into {} (for [ltr [:a :b :A :B]
+                 :let [initial-commutator (->> (iterate first-child ltr)
+                                               (drop 1)
+                                               (take 4)
+                                               (into []))
+                       final-commutator (->> (iterate last-child ltr)
+                                             (drop 1)
+                                             (take 4)
+                                             (into []))]]
+             [ltr (concat [initial-commutator]
+                          ;; TODO special repetends
+                          [final-commutator])])))
+
+(defn limit-set-dfs
+  ([a b max-depth epsilon start end] (limit-set-dfs a b max-depth epsilon start end nil))
+  ([a b max-depth epsilon start end special-repetends]
+   (let [a* (m/inverse a)
+         b* (m/inverse b)
+         preimages (->> (repetend-table special-repetends)
+                        (map (fn [[ltr reps]]
+                               [ltr (mapv #(->> %
+                                                (word->transform a a* b b*)
+                                                m/fixed-points
+                                                first)
+                                          reps)]))
+                        (into {}))
+         go (fn continue [current-word]
+              (when (and (some? current-word)
+                         (not= current-word end))
+                (let [t (word->transform a a* b b* current-word)
+                      test-points (->> (peek current-word)
+                                       (preimages)
+                                       (map #(m/transform % t)))]
+                  (if (or (= max-depth (count current-word))
+                          (->> test-points
+                               (partition 2 1)
+                               (every? (fn [[z1 z2]]
+                                         (> epsilon
+                                            (c/abs (c/- z1 z2)))))))
+                    (lazy-cat test-points
+                              (continue (next-word-and-ascend current-word)))
+                    (recur (conj current-word
+                                 (-> current-word peek first-child)))))))]
+     (go start))))
