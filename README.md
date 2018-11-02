@@ -2,6 +2,7 @@
 
 drawing fractally pictures in clojure.
 
-## apollonian gasket
+## images
 
-![apollonian gasket](renders/apollonian_gasket.png?raw=true)
+[apollonian gasket](renders/apollonian_gasket.png?raw=true)
+[jordan curve](renders/quasifuchsian.png)

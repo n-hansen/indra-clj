@@ -23,7 +23,7 @@
 ;; provides a scaling procedure but it doesn't really work that well
 ;; for our use case, so we perform scaling by hand before passing to
 ;; the various rendering functions
-(def scale 300.0)
+(def scale 250.0)
 
 (defn z->xy
   [z]
@@ -95,7 +95,7 @@
 (defn render-limit-points
   ([limit-set] (render-limit-points limit-set nil))
   ([limit-set progress-to]
-   (c2d/with-canvas [canvas (c2d/canvas 1200 1200 :high)]
+   (c2d/with-canvas [canvas (c2d/canvas 10000 10000 :high)]
      (set-up-canvas canvas)
      (c2d/set-stroke canvas 1)
      (let [s (volatile! 0)]
@@ -103,13 +103,17 @@
                                  (partition 2 1)
                                  (map-indexed vector))
                :let [c ((color/gradient-presets :iq-1)
-                        (vswap! s + (* (c/abs (c/- p1 p2)) 0.03)))]]
+                        (vswap! s + (* (c/abs (c/- p1 p2)) 0.005)))
+                     [x1 y1] (z->xy p1)
+                     [x2 y2] (z->xy p2)]]
          (when (and (some? progress-to)
-                    (zero? (mod ix 2000)))
-           (reset! progress-to (c2d/get-image canvas)))
+                    (zero? (mod ix 5000)))
+           (if (= progress-to ::console)
+             (println ix p1)
+             (reset! progress-to (c2d/get-image canvas))))
          (-> canvas
              (c2d/set-color c)
-             (fill p1))))
+             (c2d/line x1 y1 x2 y2))))
      (c2d/get-image canvas))))
 
 ;; begin examples
@@ -386,4 +390,27 @@
   (make-window-next apollonian-image)
   (apollonian-image-render)
   (c2d/save @apollonian-image "renders/apollonian_gasket.png")
+  )
+
+;; quasifuchsian group 2
+
+(defonce quasi-fuchsian-example-2-image (atom nil))
+
+(defn quasi-fuchsian-example-2-render
+  []
+  (let [depth 350
+        epsilon 1e-3
+        {:keys [a b]} (r/parabolic-commutator-group (c/rect 1.87 0.1)
+                                                    (c/rect 1.87 -0.1))
+        limit-set (ls/limit-set-dfs a b depth epsilon
+                                    [[:a] [:b] [:A] [:B]])]
+    (reset! quasi-fuchsian-example-2-image (render-limit-points limit-set
+                                                                ::console
+                                                                #_quasi-fuchsian-example-2-image))))
+
+(comment
+  (make-window-next quasi-fuchsian-example-2-image)
+  (do (time (quasi-fuchsian-example-2-render))
+      (c2d/save @quasi-fuchsian-example-2-image "renders/quasifuchsian.png"))
+
   )
