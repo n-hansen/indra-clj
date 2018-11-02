@@ -93,18 +93,24 @@
     #_#_:fps 10}))
 
 (defn render-limit-points
-  [limit-set]
-  (c2d/with-canvas [canvas (c2d/canvas 1200 1200 :high)]
-    (set-up-canvas canvas)
-    (c2d/set-stroke canvas 1)
-    (let [s (volatile! 0)]
-      (doseq [[p1 p2] (partition 2 1 limit-set)
-              :let [c ((color/gradient-presets :iq-1)
-                       (vswap! s + (* (c/abs (c/- p1 p2)) 0.03)))]]
-       (-> canvas
-           (c2d/set-color c)
-           (fill p1))))
-    (c2d/get-image canvas)))
+  ([limit-set] (render-limit-points limit-set nil))
+  ([limit-set progress-to]
+   (c2d/with-canvas [canvas (c2d/canvas 1200 1200 :high)]
+     (set-up-canvas canvas)
+     (c2d/set-stroke canvas 1)
+     (let [s (volatile! 0)]
+       (doseq [[ix [p1 p2]] (->> limit-set
+                                 (partition 2 1)
+                                 (map-indexed vector))
+               :let [c ((color/gradient-presets :iq-1)
+                        (vswap! s + (* (c/abs (c/- p1 p2)) 0.03)))]]
+         (when (and (some? progress-to)
+                    (zero? (mod ix 1000)))
+           (reset! progress-to (c2d/get-image canvas)))
+         (-> canvas
+             (c2d/set-color c)
+             (fill p1))))
+     (c2d/get-image canvas))))
 
 ;; begin examples
 
@@ -365,7 +371,7 @@
 
 (defn apollonian-image-render
   []
-  (let [depth 50
+  (let [depth 100
         epsilon 5e-4
         a (m/make-transformation c/one         c/zero
                                  (c/rect 0 -2) c/one)
@@ -373,7 +379,8 @@
                                  c/one         (c/rect 1 1))
         limit-set (ls/limit-set-dfs a b depth epsilon
                                     [[:a] [:b] [:A] [:B]])]
-    (reset! apollonian-image (render-limit-points (map #(c/*real % 2) limit-set)))))
+    (reset! apollonian-image
+            (render-limit-points (map #(c/*real % 2) limit-set) apollonian-image))))
 
 (comment
   (make-window-next apollonian-image)
