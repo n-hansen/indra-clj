@@ -92,6 +92,13 @@
 
 ;; DFS for limit points to a maximum depth or displacement
 
+(defn cyclic-permutations
+  [word]
+  (->> (concat word word)
+       (iterate rest)
+       (take (count word))
+       (map #(->> % (take (count word)) vec))))
+
 (defn next-word-and-ascend
   "increment the least-significant letter of the word, ascending the cayley graph as necessary.
 
@@ -120,7 +127,8 @@
                                              (take 4)
                                              (into []))]]
              [ltr (concat [initial-commutator]
-                          ;; TODO special repetends
+                          ; TODO handle the case where we have multiple special repetends per entry
+                          (filter #(= ltr (peek %)) special-repetends)
                           [final-commutator])])))
 
 (defn limit-set-dfs-section
@@ -158,5 +166,6 @@
   ([a b max-depth epsilon] (limit-set-dfs a b max-depth epsilon nil))
   ([a b max-depth epsilon special-repetends]
    (for [branch [:a :b :A :B]
-         point (limit-set-dfs-section a b max-depth epsilon special-repetends [branch (first-child branch)] nil)]
+         point (limit-set-dfs-section a b max-depth epsilon special-repetends
+                                      [branch (first-child branch)] nil)]
      point)))

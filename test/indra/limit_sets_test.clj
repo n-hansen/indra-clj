@@ -77,7 +77,21 @@
                 [:B :a :b :A]]
             :B [[:A :b :a :B]
                 [:a :b :A :B]]}
-           (repetend-table nil)))))
+           (repetend-table nil))))
+  (testing "special repetends"
+    (is (= {:a [[:B :A :b :a]
+                [:a]
+                [:b :A :B :a]]
+            :b [[:a :B :A :b]
+                [:a :b]
+                [:A :B :a :b]]
+            :A [[:b :a :B :A]
+                [:a :b :A]
+                [:B :a :b :A]]
+            :B [[:A :b :a :B]
+                [:a :b :A :B]
+                [:a :b :A :B]]}
+           (repetend-table [[:a] [:a :b] [:a :b :A] [:a :b :A :B]])))))
 
 (deftest limit-set-dfs-fuchsian-test
   (let [sqrt2 (c/rect (FastMath/sqrt 2) 0)
