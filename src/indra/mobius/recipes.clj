@@ -77,3 +77,45 @@
                 t
                 (pure-scaling (c/rect (/ r) 0))
                 (pure-translation (c/- p))))))
+
+(defn parabolic-commutator-group
+  "generate an element of the parabolic commutator group.
+
+  parameterization and choice of normalization is from mumford, series, & wright."
+  ;; http://klein.math.okstate.edu/IndrasPearls/tools/twogen.pdf
+  ;; TODO clean this up a bit
+  [t-a t-b]
+  (let [t-ab (c/div-real (c/- (c/* t-a t-b)
+                              (c/sqrt (c/- (c/* t-a t-a t-b t-b)
+                                           (c/*real (c/+ (c/* t-a t-a)
+                                                         (c/* t-b t-b))
+                                                    4.0))))
+                         2.0)
+        z0 (c/div (c/* t-b
+                       (c/-real t-ab 2.0))
+                  (c/+ (c/* t-a t-ab)
+                       (c/* t-ab (c/rect 0 2))
+                       (c/*real t-a -2.0)))
+        a (m/make-transformation t-a
+                                 (c/div (c/+ (c/* t-a t-ab)
+                                             (c/*real t-b -2.0)
+                                             (c/rect 0 4))
+                                        (c/* (c/+real t-ab
+                                                      2.0)
+                                             z0))
+                                 (c/div (c/* z0
+                                             (c/+ (c/* t-a t-ab)
+                                                  (c/*real t-b -2)
+                                                  (c/rect 0 -4)))
+                                        (c/-real t-ab
+                                                 2.0))
+                                 t-a)
+        ab (m/make-transformation t-ab
+                                  (c/div (c/-real t-ab 2.0)
+                                         z0)
+                                  (c/* (c/+real t-ab 2.0)
+                                       z0)
+                                  t-ab)
+        b (m/compose (m/inverse a) ab)]
+    {:a a
+     :b b}))

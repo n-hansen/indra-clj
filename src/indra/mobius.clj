@@ -111,7 +111,7 @@
    (let [=* #(Precision/equals %1 %2 epsilon)
          tr (trace t)]
      (cond
-       (and (c/real? tr)
+       (and (< (c/imag tr) epsilon)
             (=* 2.0 (c/abs tr)))
        :parabolic
 
