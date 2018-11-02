@@ -92,6 +92,22 @@
     :draw-fn (fn [c _ _ _] (some? @img) (c2d/image c @img))
     #_#_:fps 10}))
 
+(defn render-limit-points
+  [limit-set]
+  (c2d/with-canvas [canvas (c2d/canvas 600 600)]
+    (set-up-canvas canvas)
+    (c2d/set-stroke canvas 1)
+    (let [s (volatile! 0)]
+      (doseq [[p1 p2] (partition 2 1 limit-set)
+              :let [c ((color/gradient-presets :iq-1)
+                       (vswap! s + (* (c/abs (c/- p1 p2)) 0.03)))]]
+       (-> canvas
+           (c2d/set-color c)
+           (fill p1))))
+    (c2d/get-image canvas)))
+
+;; begin examples
+
 (defn circle-inversion-example
   [canvas window framecount _]
   (binding [g/*max-path-segment-length* 0.005]
@@ -299,11 +315,16 @@
 
 ;; quasi-fuchsian group
 
-(def quasi-fuchsian-example-1
-  (let [depth 8
+(defonce quasi-fuchsian-example-1-disk-image (atom nil))
+(defonce quasi-fuchsian-example-1-points-image (atom nil))
+
+(defn quasi-fuchsian-example-1-render
+  []
+  (let [disk-depth 8
+        point-depth 40
         y 0.95
         x (FastMath/sqrt (+ 1 (* y y)))
-        k 1.9
+        k 1.4
         v (/ (* y (/ (+ k (/ k)) 2)))
         u (FastMath/sqrt (+ 1 (* v v)))
         a (m/make-transformation (c/rect x 0) (c/rect y 0)
@@ -318,36 +339,24 @@
         cb  (g/->Circle (c/rect 0    (/ (* k u) v))  (/ k v))
         cb* (g/->Circle (c/rect 0 (- (/ (* k u) v))) (/ k v))
 
-        disks (schottky/schottkey-disks ca ca* cb cb* depth {:a a :A a* :b b :B b*})
+        disks (schottky/schottkey-disks ca ca* cb cb* disk-depth {:a a :A a* :b b :B b*})
 
-        repetends [#_#_#_#_[:a] [:b] [:A] [:B] [:a :b :A :B] [:b :A :B :a] [:A :B :a :b] [:B :a :b :A]]
-        limit-set (into [] (ls/limit-set-fixed-depth-dfs a a* b b* repetends depth))]
-    {:disks disks
-     :limit-set limit-set}))
-
-(defn quasi-fuchsian-example-1-disks-render
-  [canvas _ _ _]
-  (set-up-canvas canvas)
-  (doseq [{:keys [depth disk]} (:disks quasi-fuchsian-example-1)]
-    (-> canvas
-        (c2d/set-color ((color/gradient-presets :iq-6)
-                        (mod (/ depth 12.0) 1)))
-        (fill disk))))
-
-(defn quasi-fuchsian-example-1-limit-set-render
-  [canvas _ _ _]
-  (-> (set-up-canvas canvas)
-      (c2d/set-stroke 1.5))
-  (doseq [[ix p] (map-indexed vector (:limit-set quasi-fuchsian-example-1))
-          :let [c ((color/gradient-presets :iq-1)
-                   (/ (double ix) (dec (count (:limit-set quasi-fuchsian-example-1)))))]]
-    (-> canvas
-        (c2d/set-color c)
-        (fill p))))
+        limit-set (ls/limit-set-dfs a b point-depth 5e-3 [[:a] [:b] [:A] [:B]])]
+    (reset! quasi-fuchsian-example-1-points-image (render-limit-points limit-set))
+    (reset! quasi-fuchsian-example-1-disk-image
+            (c2d/with-canvas [canvas (c2d/canvas 600 600)]
+              (set-up-canvas canvas)
+              (doseq [{:keys [depth disk]} disks]
+                (-> canvas
+                    (c2d/set-color ((color/gradient-presets :iq-6)
+                                    (mod (/ depth 12.0) 1)))
+                    (fill disk)))
+              (c2d/get-image canvas)))))
 
 (comment
-  (make-window #(quasi-fuchsian-example-1-disks-render %1 %2 %3 %4))
-  (make-window #(quasi-fuchsian-example-1-limit-set-render %1 %2 %3 %4))
+  (make-window-next quasi-fuchsian-example-1-disk-image)
+  (make-window-next quasi-fuchsian-example-1-points-image)
+  (quasi-fuchsian-example-1-render)
   )
 
 ;; apollonian gasket, half plane projection
@@ -364,16 +373,7 @@
                                  c/one         (c/rect 1 1))
         limit-set (ls/limit-set-dfs a b depth epsilon
                                     [[:a] [:b] [:A] [:B]])]
-    (c2d/with-canvas [canvas (c2d/canvas 600 600)]
-      (set-up-canvas canvas)
-      (c2d/set-stroke canvas 1)
-      (doseq [[ix p] (map-indexed vector limit-set)
-              :let [c ((color/gradient-presets :iq-1)
-                       (* (double ix) epsilon 0.1))]]
-        (-> canvas
-            (c2d/set-color c)
-            (fill (c/*real p 2))))
-      (reset! apollonian-image (c2d/get-image canvas)))))
+    (reset! apollonian-image (render-limit-points (map #(c/*real % 2) limit-set)))))
 
 (comment
   (make-window-next apollonian-image)
