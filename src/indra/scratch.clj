@@ -71,7 +71,7 @@
                     canvas)]
     (-> canvas
        (c2d/set-background background)
-       (c2d/set-stroke 1)
+       (c2d/set-stroke 0.5)
        ;; center the canvas on (0,0)
        (c2d/translate max-x max-y)
        draw-grid)))
@@ -97,13 +97,13 @@
   ([limit-set progress-to]
    (c2d/with-canvas [canvas (c2d/canvas 10000 10000 :high)]
      (set-up-canvas canvas)
-     (c2d/set-stroke canvas 1)
+     (c2d/set-stroke canvas 1 :round :round)
      (let [s (volatile! 0)]
        (doseq [[ix [p1 p2]] (->> limit-set
                                  (partition 2 1)
                                  (map-indexed vector))
                :let [c ((color/gradient-presets :iq-1)
-                        (vswap! s + (* (c/abs (c/- p1 p2)) 0.005)))
+                        (vswap! s #(mod (+ % (* (c/abs (c/- p1 p2)) 0.0045)) 1)))
                      [x1 y1] (z->xy p1)
                      [x2 y2] (z->xy p2)]]
          (when (and (some? progress-to)
@@ -398,19 +398,22 @@
 
 (defn quasi-fuchsian-example-2-render
   []
-  (let [depth 350
-        epsilon 1e-3
+  (let [depth 400
+        epsilon 8e-3
         {:keys [a b]} (r/parabolic-commutator-group (c/rect 1.87 0.1)
                                                     (c/rect 1.87 -0.1))
         limit-set (ls/limit-set-dfs a b depth epsilon
                                     [[:a] [:b] [:A] [:B]])]
     (reset! quasi-fuchsian-example-2-image (render-limit-points limit-set
-                                                                ::console
-                                                                #_quasi-fuchsian-example-2-image))))
+                                                                #_::console
+                                                                quasi-fuchsian-example-2-image))))
 
 (comment
   (make-window-next quasi-fuchsian-example-2-image)
   (do (time (quasi-fuchsian-example-2-render))
-      (c2d/save @quasi-fuchsian-example-2-image "renders/quasifuchsian.png"))
+
+      (c2d/save @quasi-fuchsian-example-2-image "renders/quasifuchsian.png")
+
+      )
 
   )

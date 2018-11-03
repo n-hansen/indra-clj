@@ -226,21 +226,26 @@
                                       (get preimages ltr))]
                  (if-not (and (> max-depth (current-depth ctx))
                               ; doing this dumb loop instead of (->> (partition) (every?))
-                              ; improves our overall runtime by almost 50%
+                              ; improves our overall runtime substantially
                               (loop [[z1 & zs] test-points]
                                 (when-some [z2 (first zs)]
                                   (if (< epsilon
                                          (c/abs (c/- z1 z2)))
                                     true
                                     (recur zs)))))
-                   (lazy-cat test-points
+                   (lazy-cat (rest test-points) ; avoid double-counting endpoints when commutators are parabolic
                              (do (advance-word! ctx)
                                  (continue)))
                    (do (push-letter! ctx (first-child ltr))
                        (recur))))))]
     (doseq [ltr start]
       (push-letter! ctx ltr))
-    (go)))
+    (cons
+     (-> preimages
+         (get (peek start))
+         first
+         (m/transform (current-transformation ctx)))
+     (go))))
 
 
 (defn limit-set-dfs
