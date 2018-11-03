@@ -1,19 +1,16 @@
 (ns indra.limit-sets
   (:require [indra.mobius :as m]
-            [indra.complex :as c]))
+            [indra.complex :as c])
+  (:import [java.util ArrayDeque]))
 
 ;; DFS with static depth and fixed preimage list
 
 (defn word->transform
-  [a a* b b* word]
-  (->> word
-       (map (fn [ltr]
-              (case ltr
-                :a a
-                :A a*
-                :b b
-                :B b*)))
-       (reduce m/compose)))
+  ([a b word] (word->transform a (m/inverse a) b (m/inverse b) word))
+  ([a a* b b* word]
+   (->> word
+        (map {:a a :A a* :b b :B b*})
+        (reduce m/compose))))
 
 (defn inverse-letter?
   [ltr1 ltr2]
@@ -162,10 +159,133 @@
                                 (-> current-word peek first-child)))))))]
     (go start)))
 
+;; caching dfs implementation
+
+; ArrayDeque performs better than using volatiles and/or transients and is easier to understand to boot.
+; NB:  Adding pmaps will cause a spooky ghost to visit your
+;      house at night and make a mess of your pots and pans.
+(defrecord DfsContext [generators ^ArrayDeque letters ^ArrayDeque transformations])
+
+(defn create-dfs-context
+  [a b]
+  (->DfsContext {:a a :A (m/inverse a) :b b :B (m/inverse b)}
+                (ArrayDeque.)
+                (doto (ArrayDeque.)
+                  (.push m/unit))))
+
+(defn pop-letter!
+  [{:keys [^ArrayDeque transformations ^ArrayDeque letters] :as ctx}]
+  (.removeLast transformations)
+  (.removeLast letters))
+
+(defn push-letter!
+  [{:keys [generators ^ArrayDeque transformations ^ArrayDeque letters] :as ctx} letter]
+  (.addLast letters letter)
+  (.addLast transformations (m/compose (.peekLast transformations)
+                                       (get generators letter))))
+
+(defn current-depth
+  [{:keys [^ArrayDeque letters] :as ctx}]
+  (.size letters))
+
+(defn current-letter
+  [{:keys [^ArrayDeque letters] :as ctx}]
+  (.peekLast letters))
+
+(defn current-word
+  [{:keys [^ArrayDeque letters] :as ctx}]
+  (vec (.toArray letters)))
+
+(defn current-transformation
+  [{:keys [^ArrayDeque transformations] :as ctx}]
+  (.peekLast transformations))
+
+(defn advance-word!
+  [{:keys [^ArrayDeque letters] :as ctx}]
+  (let [prev-letter (pop-letter! ctx)]
+    (when-let [parent-letter (.peekLast letters)]
+      (if (= prev-letter (last-child parent-letter))
+        (recur ctx)
+        (push-letter! ctx (next-letter prev-letter))))))
+
+(defn limit-set-caching-dfs-section
+  [a b max-depth epsilon special-repetends start end]
+  (let [ctx (create-dfs-context a b)
+        preimages (->> (repetend-table special-repetends)
+                       (map (fn [[ltr reps]]
+                              [ltr (mapv #(-> (word->transform a b %)
+                                              m/fixed-points
+                                              first)
+                                         reps)]))
+                       (into {}))
+        go (fn continue []
+             (when-let [ltr (and (not (and end (= end (current-word ctx))))
+                                 (current-letter ctx))]
+               (let [t (current-transformation ctx)
+                     test-points (map #(m/transform % t)
+                                      (get preimages ltr))]
+                 (if-not (and (> max-depth (current-depth ctx))
+                              ; doing this dumb loop instead of (->> (partition) (every?))
+                              ; improves our overall runtime by almost 50%
+                              (loop [[z1 & zs] test-points]
+                                (when-some [z2 (first zs)]
+                                  (if (< epsilon
+                                         (c/abs (c/- z1 z2)))
+                                    true
+                                    (recur zs)))))
+                   (lazy-cat test-points
+                             (do (advance-word! ctx)
+                                 (continue)))
+                   (do (push-letter! ctx (first-child ltr))
+                       (recur))))))]
+    (doseq [ltr start]
+      (push-letter! ctx ltr))
+    (go)))
+
+
 (defn limit-set-dfs
   ([a b max-depth epsilon] (limit-set-dfs a b max-depth epsilon nil))
   ([a b max-depth epsilon special-repetends]
    (for [branch [:a :b :A :B]
-         point (limit-set-dfs-section a b max-depth epsilon special-repetends
-                                      [branch (first-child branch)] nil)]
+         point (limit-set-caching-dfs-section a b max-depth epsilon special-repetends
+                                              [branch (first-child branch)] nil)]
      point)))
+
+
+(comment
+  (require 'indra.mobius.recipes)
+  (require 'criterium.core)
+
+  (let [depth 400
+        epsilon 5e-2
+        {:keys [a b]} (indra.mobius.recipes/parabolic-commutator-group (c/rect 1.87 0.1)
+                                                                       (c/rect 1.87 -0.1))]
+    (criterium.core/quick-bench
+     (count (limit-set-dfs-section a b depth epsilon
+                                     [[:a] [:b] [:A] [:B]]
+                                     [:a (first-child :a)]
+                                     nil)))
+    (time (->> (limit-set-dfs-section a b depth epsilon
+                                      [[:a] [:b] [:A] [:B]]
+                                      [:a (first-child :a)]
+                                      nil)
+               (count)
+               (println "Generated points:"))))
+
+  (let [depth 400
+        epsilon 5e-2
+        {:keys [a b]} (indra.mobius.recipes/parabolic-commutator-group (c/rect 1.87 0.1)
+                                                                       (c/rect 1.87 -0.1))]
+    (criterium.core/quick-bench
+     (count (limit-set-caching-dfs-section a b depth epsilon
+                                           [[:a] [:b] [:A] [:B]]
+                                           [:a (first-child :a)]
+                                           nil #_[:a (last-child :a)])))
+    (time (->> (limit-set-caching-dfs-section a b depth epsilon
+                                              [[:a] [:b] [:A] [:B]]
+                                              [:a (first-child :a)]
+                                              nil #_[:a (last-child :a)])
+               (count)
+               (println "Generated points:"))))
+
+  )
