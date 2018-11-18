@@ -30,7 +30,8 @@
                          :depth (parse-clamped-long depth 6 200)
                          :epsilon (parse-clamped-double epsilon 3.0 0.75)
                          :color-step 4e-5
-                         :special-repetends [[:a] [:b] [:A] [:B]]})
+                         :special-repetends [[:a] [:b] [:A] [:B]]
+                         :timeout 700})
           img (lsr/render-limit-set params)]
       (with-open [os (ByteArrayOutputStream.)]
         (lsr/write-to-png img os)

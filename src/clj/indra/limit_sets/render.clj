@@ -13,6 +13,7 @@
            [java.awt.image BufferedImage]
            [java.awt Color]
            [java.io ByteArrayOutputStream]
+           [java.lang System]
            [javax.imageio ImageIO]))
 
 (def background (color/color 255 255 255))
@@ -21,7 +22,7 @@
 (def compute-coc-epsilon 1e-5)
 (def coc-margin-pct 1.2)
 
-(defn change-of-coords-old
+#_(defn change-of-coords-old
   ; TODO might be better to handle this with a conjugation
   [width height a b]
   (let [[min-x min-y max-x max-y] (repeatedly #(volatile! 0.0))
@@ -94,18 +95,24 @@
       (c2d/line canvas max-x (- y) (- ^long max-x) (- y)))))
 
 (defn render-limit-set
-  [{:keys [width height a b depth epsilon-px special-repetends quality color-step]
+  [{:keys [width height a b depth epsilon-px special-repetends quality color-step timeout]
     :or {width 100 height 100
          depth 20
          epsilon-px 0.8
          quality :high
          color-step 0.0001}}]
   (let [{:keys [z->x z->y scale] :as coc} (change-of-coords width height a b)
-        curr-color (volatile! 0.0)]
+        curr-color (volatile! 0.0)
+        continue? (if (nil? timeout)
+                    (constantly true)
+                    (let [deadline (+ timeout (System/currentTimeMillis))]
+                      #(> deadline (System/currentTimeMillis))))]
     (c2d/with-canvas [canvas (c2d/canvas width height quality)]
       #_(draw-grid! canvas coc)
+      (c2d/set-background canvas background)
       (c2d/set-stroke canvas 1 :round :round)
       (doseq [z (ls/limit-set-dfs a b depth (/ epsilon-px scale) special-repetends)
+              :while (continue?)
               :let [^Color c (color/awt-color
                               ((color/gradient-presets :iq-1)
                                (vswap! curr-color #(mod (+ % color-step) 1.0))))
