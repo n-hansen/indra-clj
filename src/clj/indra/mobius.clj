@@ -80,6 +80,21 @@
   [{:keys [a d]}]
   (c/+ a d))
 
+(defn sqrts
+  [{:keys [a b c d] :as m}]
+  (let [s* (c/sqrt (determinant m))]
+    (for [s [s* (c/- s*)]
+          :let [t* (c/sqrt (c/+ (trace m) (c/*real s 2.0)))]
+          t [t* (c/- t*)]]
+      (make-transformation (c/div (c/+ a s) t)
+                           (c/div b t)
+                           (c/div c t)
+                           (c/div (c/+ d s) t)))))
+
+(defn sqrt
+  [m]
+  (first (sqrts m)))
+
 (defn fixed-points
   "returns [sink source]"
   [{:keys [a b c d] :as t}]
@@ -108,7 +123,7 @@
   ;; some T(z) = z + a.
   ([t] (classify t Precision/EPSILON))
   ([t ^double epsilon]
-   (let [=* #(Precision/equals %1 %2 epsilon)
+   (let [=* #(Precision/equals ^double %1 ^double %2 epsilon)
          tr (trace t)]
      (cond
        (and (< (c/imag tr) epsilon)

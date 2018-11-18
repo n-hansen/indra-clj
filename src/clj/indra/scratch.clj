@@ -95,7 +95,7 @@
 (defn render-limit-points
   ([limit-set] (render-limit-points limit-set nil))
   ([limit-set progress-to]
-   (c2d/with-canvas [canvas (c2d/canvas 10000 10000 :high)]
+   (c2d/with-canvas [canvas (c2d/canvas 1000 1000 :high)]
      (set-up-canvas canvas)
      (c2d/set-stroke canvas 1 :round :round)
      (let [s (volatile! 0)]
@@ -411,6 +411,61 @@
 (comment
   (make-window-next quasi-fuchsian-example-2-image)
   (do (time (quasi-fuchsian-example-2-render))
+
+      (c2d/save @quasi-fuchsian-example-2-image "renders/quasifuchsian.png")
+
+      )
+
+  )
+
+;; fractional group element test
+
+#_(defonce fractional-elem-image (atom nil))
+
+#_(defn fractional-elem-render
+  []
+  (c2d/with-canvas [ ]
+    [canvas _ _ _]
+    (set-up-canvas canvas)
+    (let [t (m/conjugate (r/pure-scaling (c/rect 1.0 0.4))
+                         (m/make-transformation c/one (c/- c/one) c/one c/one))
+          t-inv (m/inverse t)
+          init (g/->Path [(c/rect -0.1 -0.15)
+                          (c/rect 0 0.1)
+                          (c/rect 0.1 -0.1)
+                          (c/rect -0.1 -0.15)])]
+      (c2d/set-stroke canvas 1)
+      (c2d/set-color canvas (color/color :black))
+      (stroke canvas init)
+      (loop [z- init
+             z+ init
+             n 12]
+        (stroke canvas z-)
+        (stroke canvas z+)
+        (when (pos? n)
+          (recur (m/transform z- t-inv)
+                 (m/transform z+ t)
+                 (dec n))))))
+
+
+  (let [depth 10
+        epsilon 8e-2
+        {:keys [a b]} (r/parabolic-commutator-group (c/rect 1.87 0.1)
+                                                    (c/rect 1.87 -0.1))
+        a (m/sqrt a)
+        b (m/sqrt b)
+        limit-set (ls/limit-set-dfs a b depth epsilon
+                                    [[:a] [:b] [:A] [:B]])]
+    (reset! fractional-elem-image (render-limit-points limit-set
+                                                       fractional-elem-image
+                                                       #_::console
+                                                       ))))
+
+
+
+(comment
+  (make-window-next fractional-elem-image)
+  (do (time (fractional-elem-render))
 
       (c2d/save @quasi-fuchsian-example-2-image "renders/quasifuchsian.png")
 

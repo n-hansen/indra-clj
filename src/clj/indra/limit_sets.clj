@@ -1,6 +1,7 @@
 (ns indra.limit-sets
   (:require [indra.mobius :as m]
-            [indra.complex :as c])
+            [indra.complex :as c]
+            [net.cgrand.xforms :as x])
   (:import [java.util ArrayDeque]))
 
 ;; DFS with static depth and fixed preimage list
@@ -292,5 +293,45 @@
                                               nil #_[:a (last-child :a)])
                (count)
                (println "Generated points:"))))
+
+  (criterium.core/quick-bench
+   (->> (range 10000)
+        (partition 2 1)
+        (every? (fn [[x y]]
+                  (< x y))))
+
+   )
+
+  ;; Evaluation count : 60 in 6 samples of 10 calls.
+  ;; Execution time mean : 10.328948 ms
+  ;; Execution time std-deviation : 90.289337 µs
+  ;; Execution time lower quantile : 10.251390 ms ( 2.5%)
+  ;; Execution time upper quantile : 10.464427 ms (97.5%)
+  ;; Overhead used : 10.885623 ns
+
+
+  (criterium.core/quick-bench
+   (loop [[z1 & zs] (range 10000)]
+     (when-some [z2 (first zs)]
+       (if (< z2 z1)
+         true
+         (recur zs))))
+   )
+
+  ;; Evaluation count : 726 in 6 samples of 121 calls.
+  ;; Execution time mean : 844.567256 µs
+  ;; Execution time std-deviation : 12.154480 µs
+  ;; Execution time lower quantile : 834.565901 µs ( 2.5%)
+  ;; Execution time upper quantile : 858.542169 µs (97.5%)
+  ;; Overhead used : 10.885623 ns
+
+  (require '[net.cgrand.xforms :as x])
+
+  (into [] (comp (x/partition 2 1)
+                 (map (fn [[x y]]
+                        (< x y)))
+                 (halt-when not))
+        (range 3))
+
 
   )
