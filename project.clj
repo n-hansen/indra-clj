@@ -19,7 +19,7 @@
                  #_[io.pedestal/pedestal.tomcat        "0.5.4"]
                  #_[io.pedestal/pedestal.aws           "0.5.4"] ;; API-Gateway, Lambda, and X-Ray support
                  ]
-  :main ^:skip-aot indra.core
+  :main indra.explorer.app
   :source-paths ["src/clj"]
   :test-paths ["test"]
   :resource-paths ["resources"]
